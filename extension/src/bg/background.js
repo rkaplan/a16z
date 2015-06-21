@@ -54,6 +54,18 @@
     }
     // save this in the "tab pool" for use later
     freeTabs.push(tabId);
+    // pause executation on this tab
+    pauseTab(tabId);
+  }
+
+  function pauseTab(tabId){
+    return;
+    chrome.debugger.attach({tabId: tabId}, "1.1", function(){
+      chrome.debugger.sendCommand({tabId: tabId}, "pause", function(args){
+        console.log("paused", tabId, args);
+        //chrome.debugger.detach({tabId: tabId});
+      });
+    });
   }
 
   var attribute = function(parent, child) {
@@ -231,11 +243,11 @@
 
   chrome.windows.getAll(function(windows) {
     for(var i = 0; i < windows.length; i++) {
-      if (windows[i].state == "minimized") {
+      if (windows[i].state === "minimized") {
         return true;
       }
     }
     getMinimizedWindowId(function() {});
-  })
+  });
 
 }());
