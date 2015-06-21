@@ -1,4 +1,5 @@
 var idToLink = {};
+var kickedOff = {};
 var loadingLinks = {};
 
 var absolutePath = function(link) {
@@ -24,6 +25,8 @@ var handleClick = function(link) {
 
 var preloadLinks = function(links) {
 	links.forEach(function(link) {
+		if (kickedOff[link]) return;
+		kickedOff[link] = true;
 		var href = absolutePath(link);
 		chrome.runtime.sendMessage({preLoad: href}, function(tabId) {
 			idToLink[tabId] = link;
@@ -43,15 +46,15 @@ var linkFinished = function(link) {
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.tabId) {
-			var link = idToLink[request.tabId];
-			loadingLinks[link] = true;
-			if (request.status == "loading") {
-				linkStarted(link);
-			} else {
-				linkFinished(link);
-			}
+  if (request.tabId) {
+		var link = idToLink[request.tabId];
+		loadingLinks[link] = true;
+		if (request.status == "loading") {
+			linkStarted(link);
+		} else {
+			linkFinished(link);
 		}
+	}
 });
 
 var links = Array.prototype.slice.call(document.querySelectorAll("a"));
