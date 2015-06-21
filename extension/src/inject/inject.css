@@ -7,10 +7,11 @@
   display: inline-block;
   pointer-events: none;
   transition: transform .4s ease;
+  z-index: 999;
 }
 
 .likely {
-  transform: translateX(-16px) scale(2);
+  transform: translateX(-16px) scale(2.5) !important;
 }
 
 .circle-border {
@@ -58,8 +59,4 @@
 
 body {
   margin-left: 20px;
-}
-
-a {
-
 }
