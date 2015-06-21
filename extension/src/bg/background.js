@@ -1,31 +1,15 @@
-chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    tabs.forEach(function(tab) {
-      chrome.tabs.sendMessage(tab.id, request, function(response) {
-        console.log(response.farewell);
-      });
-    });
-  });
-});
 
-// var responseListener = function(details){
-//     var rule = {
-//         "name": "Origin",
-//         "value": "http://localhost:3000"
-//     };
-//     console.log(details.responseHeaders);
-//     details.responseHeaders.push(rule);
-//     return {responseHeaders: details.responseHeaders};
-// };
-//
-//  chrome.webRequest.onHeadersReceived.addListener(responseListener,
-//      {urls: [   "*://*/*" ] },
-//      ["blocking", "responseHeaders"]);
 
 
 var minimized_id = null;
 var urlToId = {};
-var idToUrl = {};
+var creator = {};
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if ((tabId in creator) && (changeInfo.status == "loading" || changeInfo.status == "complete")) {
+    chrome.tabs.sendMessage(creator[tabId], {tabId: tabId, status: changeInfo.status});
+  }
+});
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
@@ -33,8 +17,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var doIt = function() {
       chrome.tabs.create({windowId: minimized_id, url: request.preLoad}, function(tab) {
         urlToId[request.preLoad] = tab.id;
-        idToUrl[tab.id] = request.preLoad;
-        sendResponse({startLoad: request.preLoad});
+        sendResponse(tab.id);
+        creator[tab.id] = sender.tab.id;
       });
     }
     if (!minimized_id) {
@@ -47,7 +31,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     } else {
       doIt();
     }
-    return;
+    return true;
   }
 
   if (request.load) {
@@ -58,4 +42,5 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       chrome.tabs.remove(sender.tab.id);
     });
   }
+  return true;
 });
