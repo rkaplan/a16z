@@ -1,4 +1,4 @@
-/*global chrome*/
+/*global chrome, _*/
 (function(){
   "use strict";
   var redirectPage = chrome.extension.getURL("src/redirector.html");
@@ -34,6 +34,7 @@
   var urlToId = {};
   var creator = {};
   var created = {};
+  var lastBack = null;
 
   var MAX_HISTORY_SIZE = 5;
 
@@ -71,15 +72,39 @@
       attribute(sender.tab, tab);
     };
 
+    if (request.requestRedirect){
+      getMinimizedWindowId(function(minimized_id){
+        if (sender.tab.windowId !== minimized_id){
+          lastBack = sender.tab.id;
+        }
+        if (tabHistory[sender.tab.id].length === 0){
+          return "about:blank";
+        }
+        //console.log("popping", tabHistory[sender.tab.id].pop());
+        tabHistory[sender.tab.id].currentPage = tabHistory[sender.tab.id].history.pop();
+        sendResponse(tabHistory[sender.tab.id].currentPage);
+        console.log("redirecting to", tabHistory[sender.tab.id]);
+      });
+    }
+
     if (request.preLoad) {
       getMinimizedWindowId(function(minimized_id) {
         window.redirectTo = request.preLoad;
         console.log(redirectPage);
         chrome.tabs.create({windowId: minimized_id, url: redirectPage}, function(tab) {
-          chrome.tabs.update(tab.id, {url: request.preLoad}, function(res) {
-            console.log(res);
-            setupTab(tab);
-          });
+          setupTab(tab);
+          // clone parent tab's history
+          tabHistory[tab.id] = {
+            history: tabHistory[sender.tab.id].history.slice(0),
+            currentPage: tabHistory[sender.tab.id].currentPage
+          };
+          if (tabHistory[tab.id].currentPage){
+            // push the tab's current page onto the backstack
+            tabHistory[tab.id].history.push(tabHistory[tab.id].currentPage);
+          }
+          // put the new page as the most recent history item
+          tabHistory[tab.id].history.push(request.preLoad);
+          tabHistory[tab.id].currentPage = null;
         });
       });
       return true;
@@ -87,6 +112,7 @@
 
     if (request.load) {
       var tab_id = urlToId[request.load];
+      console.log("Loading page with backstack", tabHistory[tab_id]);
       delete created[sender.tab.id][tab_id];
       for (var id in created[sender.tab.id]) {
         if (created[sender.tab.id].hasOwnProperty(id)){
@@ -129,13 +155,31 @@
     if (details.frameId !== 0){
       return;
     }
+    if (details.tabId === lastBack){
+      lastBack = null;
+      // update the current page now that back is complete
+      //tabHistory[details.tabId].currentPage = details.url;
+      return;
+    }
     getMinimizedWindowId(function(minimized_id){
       chrome.tabs.get(details.tabId, function(tab){
         if (tab.windowId !== minimized_id){
           if (!tabHistory.hasOwnProperty(details.tabId)){
-            tabHistory[details.tabId] = [];
+            tabHistory[details.tabId] = {
+              history: [],
+              currentPage: null
+            };
           }
-          tabHistory[details.tabId].history.push(details.url);
+          if (tabHistory[details.tabId].currentPage){
+            // this wasn't a back button, so push current page onto the stack
+            console.log("pushing current page", tabHistory[details.tabId]);
+            tabHistory[details.tabId].history.push(tabHistory[details.tabId].currentPage);
+          }
+          // update current page
+          console.log("Setting current page to", details.url, tabHistory[details.tabId]);
+          tabHistory[details.tabId].currentPage = details.url;
+          /*console.log("pushing", tabHistory[details.tabId], details.url);
+          tabHistory[details.tabId].push(details.url);*/
         }
       });
     });
@@ -144,7 +188,10 @@
   chrome.tabs.onCreated.addListener(function(tab){
     getMinimizedWindowId(function(minimized_id){
       if (tab.windowId !== minimized_id){
-        tabHistory[tab.id] = [];
+        tabHistory[tab.id] = {
+          history: [],
+          currentPage: null
+        };
       }
     });
   });
