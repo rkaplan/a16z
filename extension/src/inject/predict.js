@@ -196,7 +196,7 @@ var loadPriors = function() {
       setPriors(el, Math.random());
       // setPriors(el, entry.prior / data.numClicks);
     });
-    preloadLinks(anchors.slice(0, 2));
+    preloadLinks(preloaders.map(function(e) {return e.a}).slice(0, 2));
   });
 
 }
