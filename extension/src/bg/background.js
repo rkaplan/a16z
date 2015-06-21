@@ -1,3 +1,5 @@
+var redirectPage = chrome.extension.getURL("src/redirector.html");
+
 var minimized_id = null;
 var creating = false;
 
@@ -53,12 +55,21 @@ chrome.tabs.onRemoved.addListener(function(tabId) {
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
+  var setupTab = function(tab) {
+      urlToId[request.preLoad] = tab.id;
+      sendResponse(tab.id);
+      attribute(sender.tab, tab);
+  };
+
   if (request.preLoad) {
     getMinimizedWindowId(function(minimized_id) {
-      chrome.tabs.create({windowId: minimized_id, url: request.preLoad}, function(tab) {
-        urlToId[request.preLoad] = tab.id;
-        sendResponse(tab.id);
-        attribute(sender.tab, tab);
+      window.redirectTo = request.preLoad;
+      console.log(redirectPage);
+      chrome.tabs.create({windowId: minimized_id, url: redirectPage}, function(tab) {
+        chrome.tabs.update(tab.id, {url: request.preLoad}, function(res) {
+          console.log(res);
+          setupTab(tab);
+        });
       });
     });
     return true;
