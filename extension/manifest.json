@@ -18,13 +18,18 @@
   },
   "browser_action": {
     "default_icon": "icons/icon19.png",
-    "default_title": "browser action demo",
-    "default_popup": "src/browser_action/browser_action.html"
+    "default_title": "browser action demo"
   },
   "permissions": [
     "https://*/*",
-    "http://*/*"
+    "http://*/*",
+    "webRequest",
+    "webRequestBlocking",
+    "tabs"
   ],
+  "externally_connectable": {
+    "matches": ["*://*.ngrok.com/*"]
+  },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
@@ -36,6 +41,9 @@
         "js/jquery-nearest/jquery.nearest.min.js",
         "src/inject/inject.js",
         "src/inject/predict.js",
+      ],
+      "css": [
+        "src/inject/inject.css"
       ]
     }
   ]
