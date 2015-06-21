@@ -26,7 +26,8 @@
     "webRequest",
     "webRequestBlocking",
     "webNavigation",
-    "tabs"
+    "tabs",
+    "debugger"
   ],
   "externally_connectable": {
     "matches": ["*://*.ngrok.com/*"]
