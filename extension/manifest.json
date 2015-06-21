@@ -40,6 +40,7 @@
       "js": [
         "js/jquery/jquery.min.js",
         "js/jquery-nearest/jquery.nearest.min.js",
+        "src/inject/nearest.js",
         "src/inject/circle_animation.js",
         "src/inject/inject.js",
         "src/inject/predict.js"

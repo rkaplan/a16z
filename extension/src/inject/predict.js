@@ -55,7 +55,7 @@ var predictNextPt = function() {
         };
 
     } else if (p.x == mouseX && p.y == mouseY && !curMotion.active) { // idle
-        predictedPt.fresh = {
+        predictedPt = {
             x : p.x,
             y : p.y,
             fresh : false
@@ -84,7 +84,7 @@ var predictNextPt = function() {
         curMotion.peakVel.sinT = v.y / vMag;
     }
 
-    var A = 5.5, B = 38.0;
+    var A = 5.5, B = 38.0; // obtained from linear regression on Russell's training data
     var xDist = A * curMotion.peakVel.x + B * curMotion.peakVel.cosT;
     var yDist = A * curMotion.peakVel.y + B * curMotion.peakVel.sinT;
     if (curMotion.active) {
@@ -96,6 +96,7 @@ var predictNextPt = function() {
 var $closestElem, closestElemColor;
 var closestLink = function(x, y) {
     var $elem = $.nearest({x : x, y : y}, 'a[href]');
+    // var $elem = $(nearestLink({x : x, y : y}));
     if (!SHOW_LINK_COLOR || $elem === $closestElem)
         return $elem;
 
@@ -206,7 +207,7 @@ $(document).mousemove(function(e) {
     mouseY = e.pageY;
 
     if(!mouseMoved) { // first mouse move on page
-        requestAnimationFrame(timer); // 60fps
+        requestAnimationFrame(timer);
         mouseMoved = true;
         loadPriors();
     }
