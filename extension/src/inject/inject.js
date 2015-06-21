@@ -65,3 +65,15 @@ links.forEach(function(link) {
 	};
 	link.addEventListener("mouseover", loader);
 });
+
+var $circle = $('<div>').css({
+   'border-radius' : '50%',
+   'width' : '5px',
+   'height' : '5px',
+   'background' : 'red',
+  //  'border' : '3px solid red',
+   'position' : 'absolute',
+   'pointer-events' : 'none',
+});
+
+$circle.insertBefore($('a'));
