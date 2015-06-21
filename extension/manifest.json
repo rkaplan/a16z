@@ -48,8 +48,8 @@
         "http://*/*"
       ],
       "js": [
-        "src/inject/inject.js",
-        "src/inject/history.js"
+        "js/jquery/jquery.min.js",
+        "src/inject/inject.js"
       ]
     }
   ]

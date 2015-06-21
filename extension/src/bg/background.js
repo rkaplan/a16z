@@ -1,17 +1,31 @@
 /*global chrome*/
 (function(){
   "use strict";
+  var redirectPage = chrome.extension.getURL("src/redirector.html");
+
+  var minimized_id = null;
+  var creating = false;
+
   var getMinimizedWindowId = function(cb) {
-    chrome.windows.getAll(function(windows) {
-      for (var i = 0; i < windows.length; i++) {
-        if (windows[i].state === "minimized") {
-          return cb(windows[i].id);
+    if (minimized_id !== null){
+      return cb(minimized_id);
+    }
+    if (creating) {
+      var find = setInterval(function() {
+        if (minimized_id) {
+          clearInterval(find);
+          creating = false;
+          cb(minimized_id);
         }
-      }
-      chrome.windows.create(function(minimized) {
-        chrome.windows.update(minimized.id, {state: "minimized"}, function() {
-          cb(minimized.id);
-        });
+      }, 10);
+      return;
+    }
+    creating = true;
+    chrome.windows.create(function(minimized) {
+      chrome.windows.update(minimized.id, {state: "minimized"}, function() {
+        minimized_id = minimized.id;
+        creating = false;
+        cb(minimized_id);
       });
     });
   };
@@ -25,49 +39,47 @@
 
   var attribute = function(parent, child) {
     creator[child.id] = parent.id;
-    if (parent.id in created) {
-      created[parent.id].push(child.id);
-    } else {
-      created[parent.id] = [child.id];
+    if (!(parent.id in created)) {
+      created[parent.id] = {};
     }
+    created[parent.id][child.id] = true;
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    //console.log(creator, tabId);
     if ((tabId in creator) && (changeInfo.status === "loading" || changeInfo.status === "complete")) {
-      //console.log(changeInfo);
       chrome.tabs.sendMessage(creator[tabId], {tabId: tabId, status: changeInfo.status});
     }
   });
 
-  // chrome.tabs.onRemoved.addListener(function(tabId) {
-  //   if (tabId in created) {
-  //
-  //   }
-  // });
+  chrome.tabs.onRemoved.addListener(function(tabId) {
+    if (!(tabId in created)){
+      return;
+    }
+    for (var id in created[tabId]) {
+      if (created[tabId].hasOwnProperty(id)){
+        id = parseInt(id, 10);
+        chrome.tabs.remove(id);
+        delete created[tabId][id];
+      }
+    }
+  });
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    var setupTab = function(tab) {
+      urlToId[request.preLoad] = tab.id;
+      sendResponse(tab.id);
+      attribute(sender.tab, tab);
+    };
 
     if (request.preLoad) {
-      //console.log(request);
       getMinimizedWindowId(function(minimized_id) {
-        var url = request.preLoad, loadingHistory = false;
-        if (tabHistory.hasOwnProperty(sender.tab.id) && tabHistory[sender.tab.id].history.length > 0){
-          var obj = tabHistory[sender.tab.id];
-          //obj.history.push(url);
-          url = obj.history[0];
-          loadingHistory = true;
-        }
-        chrome.tabs.create({windowId: minimized_id, url: url}, function(tab) {
-          urlToId[request.preLoad] = tab.id;
-          sendResponse(tab.id);
-          attribute(sender.tab, tab);
-          if (loadingHistory){
-            // clone history for current tab and then insert most recent url
-            tabHistory[tab.id] = tabHistory[sender.tab.id];
-            tabHistory[tab.id].history.push(request.preLoad);
-            //tabHistory[tab.id].loading = true;
-          }
+        window.redirectTo = request.preLoad;
+        console.log(redirectPage);
+        chrome.tabs.create({windowId: minimized_id, url: redirectPage}, function(tab) {
+          chrome.tabs.update(tab.id, {url: request.preLoad}, function(res) {
+            console.log(res);
+            setupTab(tab);
+          });
         });
       });
       return true;
@@ -75,19 +87,22 @@
 
     if (request.load) {
       var tab_id = urlToId[request.load];
-      created[sender.tab.id].forEach(function(id) {
-        if (id !== tab_id) {
-          chrome.tabs.remove(id);
+      delete created[sender.tab.id][tab_id];
+      for (var id in created[sender.tab.id]) {
+        if (created[sender.tab.id].hasOwnProperty(id)){
+          id = parseInt(id, 10);
+          if (id !== tab_id) {
+            chrome.tabs.remove(id);
+            delete created[sender.tab.id][id];
+          }
         }
-      });
+      }
       var index = request.meta ? -1 : sender.tab.index + 1;
       chrome.tabs.move(tab_id, {windowId: sender.tab.windowId, index: index}, function() {
-        // console.log(arguments);
         if (request.meta) {
           // chrome.tabs.duplicate(tab_id);
         } else {
           chrome.tabs.update(tab_id, {highlighted: true});
-          tabHistory[tab_id].loading = false;
           chrome.tabs.remove(sender.tab.id);
         }
       });
@@ -118,11 +133,7 @@
       chrome.tabs.get(details.tabId, function(tab){
         if (tab.windowId !== minimized_id){
           if (!tabHistory.hasOwnProperty(details.tabId)){
-            tabHistory[details.tabId] = {
-              history: [],
-              index: 0,
-              loading: false
-            };
+            tabHistory[details.tabId] = [];
           }
           tabHistory[details.tabId].history.push(details.url);
         }
@@ -133,11 +144,7 @@
   chrome.tabs.onCreated.addListener(function(tab){
     getMinimizedWindowId(function(minimized_id){
       if (tab.windowId !== minimized_id){
-        tabHistory[tab.id] = {
-          history: [],
-          index: 0,
-          loading: false
-        };
+        tabHistory[tab.id] = [];
       }
     });
   });
