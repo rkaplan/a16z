@@ -47,6 +47,10 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  	if (tab.url === redirectPage) {
+  		console.log("CAUGHT REDIRECT PAGE UPDATE");
+  		return;
+  	}
     if ((tabId in creator) && (changeInfo.status === "loading" || changeInfo.status === "complete")) {
       chrome.tabs.sendMessage(creator[tabId], {tabId: tabId, status: changeInfo.status});
     }
@@ -204,6 +208,8 @@
   chrome.tabs.onRemoved.addListener(function(tabId){
     delete tabHistory[tabId];
   });
+
+  getMinimizedWindowId(function() {});
+
 }());
 
-getMinimizedWindowId(function() {});
