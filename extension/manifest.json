@@ -25,10 +25,14 @@
     "https://*/*",
     "http://*/*"
   ],
+  "externally_connectable": {
+    "matches": ["*://*.ngrok.com/*"]
+  },
   "content_scripts": [
     {
       "matches": [
-        "https://www.google.com/*"
+        "https://*/*",
+        "http://*/*"
       ],
       "css": [
         "src/inject/inject.css"
@@ -36,7 +40,8 @@
     },
     {
       "matches": [
-        "https://www.google.com/*"
+        "https://*/*",
+        "http://*/*"
       ],
       "js": [
         "src/inject/inject.js"
