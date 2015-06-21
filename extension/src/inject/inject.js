@@ -56,24 +56,3 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		}
 	}
 });
-
-var links = Array.prototype.slice.call(document.querySelectorAll("a"));
-links.forEach(function(link) {
-	var loader = function() {
-		link.removeEventListener("mouseover", loader);
-		preloadLinks([link]);
-	};
-	link.addEventListener("mouseover", loader);
-});
-
-var $circle = $('<div>').css({
-   'border-radius' : '50%',
-   'width' : '5px',
-   'height' : '5px',
-   'background' : 'red',
-  //  'border' : '3px solid red',
-   'position' : 'absolute',
-   'pointer-events' : 'none',
-});
-
-$circle.insertBefore($('a'));
