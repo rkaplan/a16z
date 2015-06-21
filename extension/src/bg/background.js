@@ -37,13 +37,18 @@
   var freeTabs = [];
   var lastBack = null;
   var MAX_FREE_TABS = 10;
+  var PAUSE_BACKGROUND_TABS = false;
 
   function getFreeTab(options, cb){
     if (freeTabs.length === 0){
-      return chrome.tabs.create(options, cb);
+      return chrome.tabs.create(options, function(tab){
+        cb(tab);
+      });
     } else {
       // return the free tab pointed to the passed in URL
-      return chrome.tabs.update(freeTabs.pop(), {url: options.url}, cb);
+      return chrome.tabs.update(freeTabs.pop(), {url: options.url}, function(tab){
+        cb(tab);
+      });
     }
   }
 
@@ -55,13 +60,12 @@
     // save this in the "tab pool" for use later
     freeTabs.push(tabId);
     // pause executation on this tab
-    pauseTab(tabId);
+    //pauseTab(tabId);
   }
 
   function pauseTab(tabId){
-    return;
     chrome.debugger.attach({tabId: tabId}, "1.1", function(){
-      chrome.debugger.sendCommand({tabId: tabId}, "pause", function(args){
+      chrome.debugger.sendCommand({tabId: tabId}, "Debugger.pause", function(args){
         console.log("paused", tabId, args);
         //chrome.debugger.detach({tabId: tabId});
       });
@@ -82,6 +86,9 @@
     }
     if ((tabId in creator) && (changeInfo.status === "loading" || changeInfo.status === "complete")) {
       chrome.tabs.sendMessage(creator[tabId], {tabId: tabId, status: changeInfo.status});
+      if (PAUSE_BACKGROUND_TABS){
+        pauseTab(tabId);
+      }
     }
   });
 
@@ -159,6 +166,9 @@
         }
       }
       var index = request.meta ? -1 : sender.tab.index + 1;
+      if (PAUSE_BACKGROUND_TABS){
+        chrome.debugger.detach({tabId: tab_id});
+      }
       chrome.tabs.move(tab_id, {windowId: sender.tab.windowId, index: index}, function() {
         if (request.meta) {
           // chrome.tabs.duplicate(tab_id);
