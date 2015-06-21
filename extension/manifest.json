@@ -40,7 +40,7 @@
         "js/jquery/jquery.min.js",
         "js/jquery-nearest/jquery.nearest.min.js",
         "src/inject/inject.js",
-        "src/inject/predict.js",
+        "src/inject/predict.js"
       ],
       "css": [
         "src/inject/inject.css"
