@@ -1,3 +1,65 @@
-/**
- * Place your custom CSS styles here.
- **/
+.circle-container {
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  transform: translateX(-16px);
+  background: none;
+  display: inline-block;
+  pointer-events: none;
+  transition: transform .4s ease;
+}
+
+.likely {
+  transform: translateX(-16px) scale(2);
+}
+
+.circle-border {
+  border-radius: 7px;
+  border: 1px solid #069CC8;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  position: absolute;
+}
+
+.circle {
+  background-color: #069CC8;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 2px;
+  height: 2px;
+  border-radius: 5px;
+}
+
+.ready .circle-border {
+  border: 1px solid #6BC806;
+  transition: border .2s ease;
+}
+
+.ready .circle {
+  display: none;
+}
+
+#example1{
+  top: 30px;
+  left: 30px;
+}
+
+#example2 {
+  top: 30px;
+  left: 60px;
+}
+
+#example3 {
+  top: 30px;
+  left: 90px;
+}
+
+body {
+  margin-left: 20px;
+}
+
+a {
+
+}

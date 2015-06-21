@@ -126,6 +126,9 @@ var setInstantaneousPrediction = function(link) {
             // we haven't preloaded it before, so preload
             if (!alreadyPreloaded.hasOwnProperty(link.href)) {
                 console.log("preloading " + link.href);
+                insertCircle($(link));
+                setMostLikely($(link));
+                setPriors($(link), 1);
                 preloadLinks([link]);
                 alreadyPreloaded[link.href] = true;
             }
@@ -182,9 +185,16 @@ var loadPriors = function() {
 
   $.getJSON("https://a16z.herokuapp.com/a/popular/" + url + "?limit=5", function(data) {
     var anchors = data.entries.map(function(entry) {
-      return aDict[entry.url];
-    }).filter(function(a) {
-      return a;
+      return {a: aDict[entry.url], prior: entry.weight};
+    }).filter(function(entry) {
+      return entry.a;
+    });
+    var preloaders = anchors.slice(0, 3);
+    preloaders.forEach(function(entry) {
+      var el = $(entry.a);
+      insertCircle(el);
+      setPriors(el, Math.random());
+      // setPriors(el, entry.prior / data.numClicks);
     });
     preloadLinks(anchors.slice(0, 2));
   });

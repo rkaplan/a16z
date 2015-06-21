@@ -208,6 +208,13 @@
     delete tabHistory[tabId];
   });
 
-  getMinimizedWindowId(function() {});
+  chrome.windows.getAll(function(windows) {
+    for(var i = 0; i < windows.length; i++) {
+      if (windows[i].state == "minimized") {
+        return true;
+      }
+    }
+    getMinimizedWindowId(function() {});
+  })
 
 }());
