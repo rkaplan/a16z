@@ -34,9 +34,27 @@
   var urlToId = {};
   var creator = {};
   var created = {};
+  var freeTabs = [];
   var lastBack = null;
+  var MAX_FREE_TABS = 10;
 
-  var MAX_HISTORY_SIZE = 5;
+  function getFreeTab(options, cb){
+    if (freeTabs.length === 0){
+      return chrome.tabs.create(options, cb);
+    } else {
+      // return the free tab pointed to the passed in URL
+      return chrome.tabs.update(freeTabs.pop(), {url: options.url}, cb);
+    }
+  }
+
+  function removeTab(tabId){
+    if (freeTabs.length > MAX_FREE_TABS){
+      // too many free tabs in the background, actually close this one
+      return chrome.tabs.remove(tabId);
+    }
+    // save this in the "tab pool" for use later
+    freeTabs.push(tabId);
+  }
 
   var attribute = function(parent, child) {
     creator[child.id] = parent.id;
@@ -47,9 +65,9 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-  	if (tab.url === redirectPage) {
-  		return;
-  	}
+    if (tab.url === redirectPage) {
+      return;
+    }
     if ((tabId in creator) && (changeInfo.status === "loading" || changeInfo.status === "complete")) {
       chrome.tabs.sendMessage(creator[tabId], {tabId: tabId, status: changeInfo.status});
     }
@@ -62,7 +80,8 @@
     for (var id in created[tabId]) {
       if (created[tabId].hasOwnProperty(id)){
         id = parseInt(id, 10);
-        chrome.tabs.remove(id);
+        //chrome.tabs.remove(id);
+        removeTab(id);
         delete created[tabId][id];
       }
     }
@@ -94,7 +113,7 @@
       getMinimizedWindowId(function(minimized_id) {
         window.redirectTo = request.preLoad;
         // console.log(redirectPage);
-        chrome.tabs.create({windowId: minimized_id, url: redirectPage}, function(tab) {
+        getFreeTab({windowId: minimized_id, url: redirectPage}, function(tab) {
           setupTab(tab);
           // clone parent tab's history
           tabHistory[tab.id] = {
@@ -121,7 +140,8 @@
         if (created[sender.tab.id].hasOwnProperty(id)){
           id = parseInt(id, 10);
           if (id !== tab_id) {
-            chrome.tabs.remove(id);
+            //chrome.tabs.remove(id);
+            removeTab(id);
             delete created[sender.tab.id][id];
           }
         }
@@ -132,6 +152,7 @@
           // chrome.tabs.duplicate(tab_id);
         } else {
           chrome.tabs.update(tab_id, {highlighted: true});
+          // TODO: don't remove this tab and instead send to background if we need more free tabs
           chrome.tabs.remove(sender.tab.id);
         }
       });
