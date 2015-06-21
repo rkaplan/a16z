@@ -43,8 +43,7 @@
     {
       "matches": [
         "https://*/*",
-        "http://*/*",
-        "chrome-extension://*"
+        "http://*/*"
       ],
       "js": [
         "src/inject/inject.js",
