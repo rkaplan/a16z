@@ -172,8 +172,13 @@
           }
           if (tabHistory[details.tabId].currentPage){
             // this wasn't a back button, so push current page onto the stack
-            console.log("pushing current page", tabHistory[details.tabId]);
-            tabHistory[details.tabId].history.push(tabHistory[details.tabId].currentPage);
+            var historyObj = tabHistory[details.tabId];
+            // don't push same page twice
+            if (historyObj.history[historyObj.history.length - 1] !== historyObj.currentPage &&
+                historyObj.currentPage !== details.url){
+              console.log("pushing current page", historyObj.history[historyObj.history.length - 1], historyObj.currentPage, historyObj);
+              tabHistory[details.tabId].history.push(tabHistory[details.tabId].currentPage);
+            }
           }
           // update current page
           console.log("Setting current page to", details.url, tabHistory[details.tabId]);
