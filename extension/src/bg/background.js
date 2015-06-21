@@ -1,10 +1,23 @@
 var minimized_id = null;
+var creating = false;
 
 var getMinimizedWindowId = function(cb) {
   if (minimized_id !== null) return cb(minimized_id);
+  if (creating) {
+    var find = setInterval(function() {
+      if (minimized_id) {
+        clearInterval(find);
+        creating = false;
+        cb(minimized_id);
+      }
+    }, 10);
+    return;
+  }
+  creating = true;
   chrome.windows.create(function(minimized) {
     chrome.windows.update(minimized.id, {state: "minimized"}, function() {
       minimized_id = minimized.id;
+      creating = false;
       cb(minimized_id);
     });
   });
