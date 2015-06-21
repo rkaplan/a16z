@@ -5,8 +5,8 @@ var mouseMoved = false; // set to true on the first mouse move
 
 var $circle = $('<div>').css({
     'border-radius' : '50%',
-    'width' : '30px', 
-    'height' : '30px', 
+    'width' : '30px',
+    'height' : '30px',
     'background' : 'rgba(0, 0, 0, 0)',
     'border' : '3px solid red',
     'position' : 'absolute',
@@ -98,7 +98,7 @@ var closestLink = function(x, y) {
     var $elem = $.nearest({x : x, y : y}, 'a[href]');
     if (!SHOW_LINK_COLOR || $elem === $closestElem)
         return $elem;
-    
+
     // restore old closest to original color
     if ($closestElem)
         $closestElem.css('color', closestElemColor);
@@ -145,8 +145,8 @@ var timer = function() {
     if (predictedPt.fresh && SHOW_PREDICTION_CIRCLE) {
         $('<div>').css({
             'border-radius' : '50%',
-            'width' : '' + (radius * 2) + 'px', 
-            'height' : '' + (radius * 2) + 'px', 
+            'width' : '' + (radius * 2) + 'px',
+            'height' : '' + (radius * 2) + 'px',
             'left' : predictedPt.x - 15,
             'top' : predictedPt.y - 15,
             'background' : 'rgba(0, 0, 0, 0)',
@@ -167,14 +167,37 @@ var timer = function() {
 
     var $link = closestLink(predictedPt.x, predictedPt.y);
     setInstantaneousPrediction($link[0]);
+    requestAnimationFrame(timer);
 };
+
+var loadPriors = function() {
+  var url = encodeURIComponent(location.href);
+  var as = Array.prototype.slice.call(document.querySelectorAll("a"));
+  var aDict = {};
+  as.forEach(function(a) {
+    var path = absolutePath(a);
+    if (path in aDict) return;
+    aDict[path] = a;
+  });
+
+  $.getJSON("https://a16z.herokuapp.com/a/popular/" + url + "?limit=5", function(data) {
+    var anchors = data.entries.map(function(entry) {
+      return aDict[entry.url];
+    }).filter(function(a) {
+      return a;
+    });
+    preloadLinks(anchors.slice(0, 2));
+  });
+
+}
 
 $(document).mousemove(function(e) {
     mouseX = e.pageX;
     mouseY = e.pageY;
-    
+
     if(!mouseMoved) { // first mouse move on page
-        setInterval(timer, 33); // 60fps
+        requestAnimationFrame(timer); // 60fps
         mouseMoved = true;
+        loadPriors();
     }
 });

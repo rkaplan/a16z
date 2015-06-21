@@ -48,7 +48,6 @@
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
   	if (tab.url === redirectPage) {
-  		console.log("CAUGHT REDIRECT PAGE UPDATE");
   		return;
   	}
     if ((tabId in creator) && (changeInfo.status === "loading" || changeInfo.status === "complete")) {
@@ -87,14 +86,14 @@
         //console.log("popping", tabHistory[sender.tab.id].pop());
         tabHistory[sender.tab.id].currentPage = tabHistory[sender.tab.id].history.pop();
         sendResponse(tabHistory[sender.tab.id].currentPage);
-        console.log("redirecting to", tabHistory[sender.tab.id]);
+        // console.log("redirecting to", tabHistory[sender.tab.id]);
       });
     }
 
     if (request.preLoad) {
       getMinimizedWindowId(function(minimized_id) {
         window.redirectTo = request.preLoad;
-        console.log(redirectPage);
+        // console.log(redirectPage);
         chrome.tabs.create({windowId: minimized_id, url: redirectPage}, function(tab) {
           setupTab(tab);
           // clone parent tab's history
@@ -116,7 +115,7 @@
 
     if (request.load) {
       var tab_id = urlToId[request.load];
-      console.log("Loading page with backstack", tabHistory[tab_id]);
+      // console.log("Loading page with backstack", tabHistory[tab_id]);
       delete created[sender.tab.id][tab_id];
       for (var id in created[sender.tab.id]) {
         if (created[sender.tab.id].hasOwnProperty(id)){
@@ -180,12 +179,12 @@
             // don't push same page twice
             if (historyObj.history[historyObj.history.length - 1] !== historyObj.currentPage &&
                 historyObj.currentPage !== details.url){
-              console.log("pushing current page", historyObj.history[historyObj.history.length - 1], historyObj.currentPage, historyObj);
+              // console.log("pushing current page", historyObj.history[historyObj.history.length - 1], historyObj.currentPage, historyObj);
               tabHistory[details.tabId].history.push(tabHistory[details.tabId].currentPage);
             }
           }
           // update current page
-          console.log("Setting current page to", details.url, tabHistory[details.tabId]);
+          // console.log("Setting current page to", details.url, tabHistory[details.tabId]);
           tabHistory[details.tabId].currentPage = details.url;
           /*console.log("pushing", tabHistory[details.tabId], details.url);
           tabHistory[details.tabId].push(details.url);*/
@@ -212,4 +211,3 @@
   getMinimizedWindowId(function() {});
 
 }());
-

@@ -25,10 +25,12 @@ var handleClick = function(link) {
 
 var preloadLinks = function(links) {
 	links.forEach(function(link) {
-        var href = absolutePath(link);
-        console.log('preloadLinks() : ' + href);
-        if (kickedOff[href]) return;
-        kickedOff[href] = true;
+    var href = absolutePath(link);
+    if (href.indexOf("mailto") !== -1) return;
+    console.log('preloadLinks() : ' + href);
+    if (kickedOff[href]) return;
+    kickedOff[href] = true;
+    link.style.color = "red";
 		chrome.runtime.sendMessage({preLoad: href}, function(tabId) {
 			idToLink[tabId] = link;
 		});
@@ -38,7 +40,7 @@ var preloadLinks = function(links) {
 
 var linkStarted = function(link) {
 	// console.log("STARTED LOADING", link);
-	link.style.color = "red";
+	link.style.color = "yellow";
 }
 
 var linkFinished = function(link) {
@@ -60,11 +62,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 
 // below code is for hover loading
-var links = Array.prototype.slice.call(document.querySelectorAll("a"));
-links.forEach(function(link) {
-       var loader = function() {
-                  link.removeEventListener("mouseover", loader);
-                  preloadLinks([link]);
-          };
-        link.addEventListener("mouseover", loader);
-  });
+// var links = Array.prototype.slice.call(document.querySelectorAll("a"));
+// links.forEach(function(link) {
+//        var loader = function() {
+//                   link.removeEventListener("mouseover", loader);
+//                   preloadLinks([link]);
+//           };
+//         link.addEventListener("mouseover", loader);
+//   });
