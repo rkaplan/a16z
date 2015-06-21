@@ -57,3 +57,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		}
 	}
 });
+
+
+// below code is for hover loading
+var links = Array.prototype.slice.call(document.querySelectorAll("a"));
+links.forEach(function(link) {
+       var loader = function() {
+                  link.removeEventListener("mouseover", loader);
+                  preloadLinks([link]);
+          };
+        link.addEventListener("mouseover", loader);
+  });
