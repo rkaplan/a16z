@@ -21,7 +21,7 @@ var intermediateColor = function(percent) {
 }
 
 var insertCircle = function(linkElement) {
-  return $('<div class="circle-container ready">\
+  return $('<div class="circle-container ready" style="transform: translateX(-16px) scale(1.5, 1.5)">\
       <div class="circle"></div>\
       <div class="circle-border"></div>\
     </div>').insertBefore(linkElement);
@@ -59,7 +59,7 @@ var setMostLikely = function(linkElement) {
 // call when loading is done
 var finishLoading = function(linkElement) {
   var circleContainer = linkElement.prev();
-  var originalScale = circleContainer.hasClass('likely') ? 2 : 1;
+  var originalScale = circleContainer.hasClass('likely') ? 2.5 : 1.5;
   // make circle bounce
   circleContainer.animate({textIndent: 100}, {
       step: function(current) {
