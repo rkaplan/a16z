@@ -23,14 +23,14 @@ var v = { x : 0, y : 0 },
         fresh : false
     },
     vMag = 0,
+    mouseX = 0,
+    mouseY = 0,
     curMotion = {
         startPt : { x : 0, y : 0},
         peakVel : { x : 0, y : 0, mag : 0},
         active : false
     },
 
-    mouseX = 0,
-    mouseY = 0,
     radius = 15;
 
 var predictNextPt = function() {
@@ -95,20 +95,26 @@ var predictNextPt = function() {
 
 var $closestElem, closestElemColor;
 var closestLink = function(x, y) {
-    var $elem = $.nearest({x : x, y : y}, 'a[href]');
-    // var $elem = $(nearestLink({x : x, y : y}));
-    if (!SHOW_LINK_COLOR || $elem === $closestElem)
-        return $elem;
+    // var elem = $.nearest({x : x, y : y}, 'a[href]')[0];
+    var elem = window.nearestLink({x : x, y : y});
+    return elem;
+    // if (elem)
+    //     return $(elem);
+    // return false;
+    // if (!$elem)
+    //     return false;
+    // if (!SHOW_LINK_COLOR || $elem === $closestElem)
+    //     return $elem;
 
-    // restore old closest to original color
-    if ($closestElem)
-        $closestElem.css('color', closestElemColor);
+    // // restore old closest to original color
+    // if ($closestElem)
+    //     $closestElem.css('color', closestElemColor);
 
-    // // save current state of new closest and then update color
-    closestElemColor = $elem.css('color');
-    $closestElem = $elem;
-    $elem.css('color', 'red');
-    return $elem;
+    // // // save current state of new closest and then update color
+    // closestElemColor = $elem.css('color');
+    // $closestElem = $elem;
+    // $elem.css('color', 'red');
+    // return $elem;
 }
 
 var lastPred, lastPredTime;
@@ -169,8 +175,9 @@ var timer = function() {
         // });
     }
 
-    var $link = closestLink(predictedPt.x, predictedPt.y);
-    setInstantaneousPrediction($link[0]);
+    var link = closestLink(predictedPt.x, predictedPt.y);
+    if (link)
+        setInstantaneousPrediction(link);
     requestAnimationFrame(timer);
 };
 
@@ -211,4 +218,9 @@ $(document).mousemove(function(e) {
         mouseMoved = true;
         loadPriors();
     }
+});
+
+// debugging:
+$(document).click(function(e) {
+    console.log('pageX : ' + e.pageX + ', pageY : ' + e.pageY);
 });

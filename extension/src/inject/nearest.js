@@ -1,9 +1,8 @@
-var nearestLink;
 
 (function() {
 	var links = [];
 
-	nearestLink = function(data) {
+	window.nearestLink = function(data) {
 		if (links.length === 0)
 			return;
 
@@ -23,9 +22,36 @@ var nearestLink;
 					dy = y - pts[j].y,
 					dist = Math.sqrt(dx * dx + dy * dy);
 				if (dist < bestLinkDist) {
-					bestLink = links[i];
+					bestLink = links[i].link;
 					bestLinkDist = dist;
 				} 
+			}
+			// orthogonal line to horizontal bounds
+			if (x > links[i].x1 && x < links[i].x2) {
+				var y1Dist = Math.abs(y - links[i].y1);
+				if (y1Dist < bestLinkDist) {
+					bestLink = links[i].link;
+					bestLinkDist = y1Dist;
+				}
+				var y2Dist = Math.abs(y - links[i].y2);
+				if (y2Dist < bestLinkDist) {
+					bestLink = links[i].link;
+					bestLinkDist = y2Dist;
+				}
+			}
+
+			// orthogonal line to vertical bounds
+			if (y > links[i].y1 && y < links[i].y2) {
+				var x1Dist = Math.abs(x - links[i].x1);
+				if (x1Dist < bestLinkDist) {
+					bestLink = links[i].link;
+					bestLinkDist = x1Dist;
+				}
+				var x2Dist = Math.abs(x - links[i].x2);
+				if (x2Dist < bestLinkDist) {
+					bestLink = links[i].link;
+					bestLinkDist = x2Dist;
+				}
 			}
 		}
 
