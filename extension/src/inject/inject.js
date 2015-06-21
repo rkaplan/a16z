@@ -25,9 +25,10 @@ var handleClick = function(link) {
 
 var preloadLinks = function(links) {
 	links.forEach(function(link) {
-		if (kickedOff[link]) return;
-		kickedOff[link] = true;
-		var href = absolutePath(link);
+        var href = absolutePath(link);
+        console.log('preloadLinks() : ' + href);
+        if (kickedOff[href]) return;
+        kickedOff[href] = true;
 		chrome.runtime.sendMessage({preLoad: href}, function(tabId) {
 			idToLink[tabId] = link;
 		});
@@ -36,12 +37,12 @@ var preloadLinks = function(links) {
 }
 
 var linkStarted = function(link) {
-	console.log("STARTED LOADING", link);
+	// console.log("STARTED LOADING", link);
 	link.style.color = "red";
 }
 
 var linkFinished = function(link) {
-	console.log("LINK FINISHED", link);
+	// console.log("LINK FINISHED", link);
 	link.style.color = "green";
 }
 

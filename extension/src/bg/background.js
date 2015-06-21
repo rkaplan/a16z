@@ -54,6 +54,7 @@ chrome.tabs.onRemoved.addListener(function(tabId) {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
   if (request.preLoad) {
+  	console.log(request.preLoad, sender.tab.url);
     getMinimizedWindowId(function(minimized_id) {
       chrome.tabs.create({windowId: minimized_id, url: request.preLoad}, function(tab) {
         urlToId[request.preLoad] = tab.id;
